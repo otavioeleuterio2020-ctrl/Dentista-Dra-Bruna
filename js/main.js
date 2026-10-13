@@ -1,37 +1,25 @@
 (function(){
-  var d=document,root=d.documentElement;root.classList.add('js');
-  var MSG='Olá! Acessei o site do Consultório Dra. Bruna Amazonas Aloise e gostaria de obter informações sobre o atendimento e os horários disponíveis.';
-  d.querySelectorAll('[data-wa]').forEach(function(a){a.href='https://wa.me/5516991097313?text='+encodeURIComponent(MSG)});
-  d.getElementById('ano').textContent=new Date().getFullYear();
-
-  // menu móvel
-  var b=d.querySelector('.burger'),nav=d.getElementById('menu');
-  function setMenu(o){nav.classList.toggle('open',o);b.setAttribute('aria-expanded',o);b.setAttribute('aria-label',o?'Fechar menu':'Abrir menu')}
-  b.addEventListener('click',function(){setMenu(!nav.classList.contains('open'))});
-  nav.addEventListener('click',function(e){if(e.target.closest('a'))setMenu(false)});
-  d.addEventListener('keydown',function(e){if(e.key==='Escape'){setMenu(false);lb.hidden=true}});
-
-  // destaque do dia (horário de Brasília)
-  var wd={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
-  try{var k=new Intl.DateTimeFormat('en-US',{weekday:'short',timeZone:'America/Sao_Paulo'}).format(new Date());
-    var r=d.querySelector('.hours tr[data-d="'+wd[k]+'"]');if(r)r.classList.add('today')}catch(e){}
-
-  // fotos reais: só entram se o arquivo existir em assets/img
-  var lb=d.getElementById('lb'),lbi=lb.querySelector('img');
-  d.querySelectorAll('[data-photo]').forEach(function(f){
-    var im=new Image();im.onload=function(){
-      var alt='Consultório Dra. Bruna Amazonas Aloise, Franca-SP';
-      im.alt=alt;im.loading='lazy';f.innerHTML='';f.appendChild(im);f.classList.add('has');
-      if(f.closest('.gallery')){f.tabIndex=0;f.setAttribute('role','button');f.setAttribute('aria-label','Ampliar: '+alt)}
-    };im.src=f.dataset.photo});
-  function open(f){var i=f.querySelector('img');if(!i)return;lbi.src=i.src;lbi.alt=i.alt;lb.hidden=false}
-  d.getElementById('gallery').addEventListener('click',function(e){var f=e.target.closest('figure.has');if(f)open(f)});
-  d.getElementById('gallery').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.matches('figure.has'))open(e.target)});
-  lb.addEventListener('click',function(){lb.hidden=true});
-
-  // revelação suave (apenas nas seções)
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
-    d.querySelectorAll('.sec .wrap,.cta-in').forEach(function(s){s.classList.add('rv');io.observe(s)});
-  }else d.querySelectorAll('.rv').forEach(function(s){s.classList.add('in')});
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+// menu
+var b=$('.burger'),n=$('#menu');
+function fecha(){b.setAttribute('aria-expanded','false');b.setAttribute('aria-label','Abrir menu');n.classList.remove('open')}
+b.addEventListener('click',function(){var o=b.getAttribute('aria-expanded')==='true';if(o){fecha()}else{b.setAttribute('aria-expanded','true');b.setAttribute('aria-label','Fechar menu');n.classList.add('open')}});
+$$('#menu a').forEach(function(a){a.addEventListener('click',fecha)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')fecha()});
+// FAQ
+$$('.q button').forEach(function(btn){btn.addEventListener('click',function(){var o=btn.getAttribute('aria-expanded')==='true';btn.setAttribute('aria-expanded',String(!o));$('#'+btn.getAttribute('aria-controls')).classList.toggle('open',!o)})});
+// horários (fuso de Franca/SP)
+var H={1:[9,20],2:[9,20],3:[9,20],4:[9,20],5:[9,20],6:[10,16]},NM=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+function agora(){var p=new Intl.DateTimeFormat('en-US',{timeZone:'America/Sao_Paulo',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=x.value});var d={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[o.weekday];return{d:d,m:(parseInt(o.hour,10)%24)*60+parseInt(o.minute,10)}}
+function status(){var t=agora(),h=H[t.d],el=$('#status');$$('.hours li').forEach(function(li){li.classList.toggle('today',+li.dataset.d===t.d)});
+if(h&&t.m>=h[0]*60&&t.m<h[1]*60){el.textContent='Aberto agora, até '+h[1]+'h.'}
+else{var d=t.d,k=0;if(h&&t.m<h[0]*60){el.textContent='Fechado agora. Abre hoje às '+h[0]+'h.';return}
+do{d=(d+1)%7;k++}while(!H[d]);el.textContent='Fechado agora. Abre '+(k===1?'amanhã':NM[d])+' às '+H[d][0]+'h.'}}
+status();setInterval(status,60000);
+// galeria ampliada
+var lb=$('#lb'),body=$('.lb-body',lb);
+$$('.gal button').forEach(function(bt){bt.addEventListener('click',function(){body.innerHTML=$('.ph',bt).outerHTML;if(lb.showModal)lb.showModal()})});
+$('.x',lb).addEventListener('click',function(){lb.close()});
+lb.addEventListener('click',function(e){if(e.target===lb)lb.close()});
+$('#ano').textContent=new Date().getFullYear();
 })();
