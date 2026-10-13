@@ -20,7 +20,7 @@
   var lb=d.getElementById('lb'),lbi=lb.querySelector('img');
   d.querySelectorAll('[data-photo]').forEach(function(f){
     var im=new Image();im.onload=function(){
-      var alt=(f.querySelector('span')||{}).textContent||'Consultório Dra. Bruna Amazonas Aloise, Franca-SP';
+      var alt='Consultório Dra. Bruna Amazonas Aloise, Franca-SP';
       im.alt=alt;im.loading='lazy';f.innerHTML='';f.appendChild(im);f.classList.add('has');
       if(f.closest('.gallery')){f.tabIndex=0;f.setAttribute('role','button');f.setAttribute('aria-label','Ampliar: '+alt)}
     };im.src=f.dataset.photo});
